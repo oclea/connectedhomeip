@@ -31,5 +31,6 @@ chip_test_suite("tests") {
     "${nlunit_test_root}:nlunit-test",
   ]
 
-  cflags = [ "-Wconversion" ]
+  cflags = [ "-Wconversion",
+             "-Wno-uninitialized" ]
 }

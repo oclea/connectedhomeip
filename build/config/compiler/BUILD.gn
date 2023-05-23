@@ -195,7 +195,6 @@ config("disabled_warnings") {
   cflags = [
     "-Wno-deprecated-declarations",
     "-Wno-missing-field-initializers",
-    "-Wno-unknown-warning-option",
     "-Wno-unused-parameter",
   ]
   if (!is_debug) {
@@ -299,6 +298,7 @@ config("disabled_warnings_third_party") {
   cflags = [
     "-Wno-unused",
     "-Wno-format",
+    "-Wno-format-security",
     "-Wno-address",
   ]
 
