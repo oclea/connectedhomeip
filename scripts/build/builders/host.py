@@ -71,6 +71,7 @@ class HostApp(Enum):
     DISHWASHER = auto()
     REFRIGERATOR = auto()
     RVC = auto()
+    TEMPERATURE = auto()
 
     def ExamplePath(self):
         if self == HostApp.ALL_CLUSTERS:
@@ -121,6 +122,8 @@ class HostApp(Enum):
             return 'refrigerator-app/linux'
         elif self == HostApp.RVC:
             return 'rvc-app/linux'
+        elif self == HostApp.TEMPERATURE:
+            return 'temperature-measurement-app/linux'
         else:
             raise Exception('Unknown app type: %r' % self)
 
@@ -209,6 +212,9 @@ class HostApp(Enum):
         elif self == HostApp.RVC:
             yield 'rvc-app'
             yield 'rvc-app.map'
+        elif self == HostApp.TEMPERATURE:
+            yield 'temperature-measurement-app'
+            yield 'temperature-measurement-app.map'
         else:
             raise Exception('Unknown app type: %r' % self)
 
