@@ -78,6 +78,7 @@ class HostApp(Enum):
     AIR_QUALITY_SENSOR = auto()
     NETWORK_MANAGER = auto()
     ENERGY_MANAGEMENT = auto()
+    TEMPERATURE = auto()
 
     def ExamplePath(self):
         if self == HostApp.ALL_CLUSTERS:
@@ -142,6 +143,8 @@ class HostApp(Enum):
             return 'network-manager-app/linux'
         elif self == HostApp.ENERGY_MANAGEMENT:
             return 'energy-management-app/linux'
+        elif self == HostApp.TEMPERATURE:
+            return 'temperature-measurement-app/linux'
         else:
             raise Exception('Unknown app type: %r' % self)
 
@@ -245,6 +248,9 @@ class HostApp(Enum):
         elif self == HostApp.ENERGY_MANAGEMENT:
             yield 'chip-energy-management-app'
             yield 'chip-energy-management-app.map'
+        elif self == HostApp.TEMPERATURE:
+            yield 'temperature-measurement-app'
+            yield 'temperature-measurement-app.map'
         else:
             raise Exception('Unknown app type: %r' % self)
 
