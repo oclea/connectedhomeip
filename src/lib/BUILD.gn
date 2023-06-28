@@ -15,6 +15,12 @@
 import("//build_overrides/chip.gni")
 import("lib.gni")
 
+declare_args() {
+    # export some extra things for a standalone library that can be staged
+    # to be used by downstream projects
+    chip_standalone_lib = false
+}
+
 static_library("lib") {
   public_deps = [
     "${chip_root}/src/app",
@@ -50,6 +56,19 @@ static_library("lib") {
   if (chip_build_default_attestation_verifier) {
     public_deps +=
         [ "${chip_root}/src/credentials:default_attestation_verifier" ]
+  }
+
+  if (chip_standalone_lib) {
+
+     public_deps += [
+        "${chip_root}/src/controller/data_model"
+     ]
+
+     sources = [
+        "${chip_root}/src/controller/ExamplePersistentStorage.cpp",
+        "${chip_root}/src/controller/ExamplePersistentStorage.h"
+     ]
+
   }
 
   cflags = [ "-Wconversion" ]
