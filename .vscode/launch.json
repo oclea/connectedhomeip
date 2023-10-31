@@ -5,6 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Run rezi-commissioner (Linux x64)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/rezi-commissioner/out/rezi-commissioner",
+            "args": ["pairing", "onnetwork", "1", "20202021"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
             "name": "Attach to running process",
             "type": "lldb",
             "request": "attach",
@@ -22,8 +30,8 @@
             "name": "Run application (Linux x64)",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/out/${input:outAppLinux}",
-            "args": [],
+            "program": "${workspaceFolder}/out/debug/standalone/chip-tool",
+            "args": ["pairing", "onnetwork", "1", "20202021"],
             "cwd": "${workspaceFolder}"
         },
         {
