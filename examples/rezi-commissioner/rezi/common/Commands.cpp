@@ -221,7 +221,7 @@ int Commands::RunInteractive(const char * command, const chip::Optional<char *> 
 CHIP_ERROR Commands::RunCommand(int argc, char ** argv, bool interactive,
                                 const chip::Optional<char *> & interactiveStorageDirectory)
 {
-    Command * command = nullptr;
+    // Command * command = nullptr;
 
     // if (argc <= 1)
     // {
@@ -312,23 +312,24 @@ CHIP_ERROR Commands::RunCommand(int argc, char ** argv, bool interactive,
 
     // Now that the command is initialized, get our storage from it as needed
     // and set up our loging level.
-#ifdef CONFIG_USE_LOCAL_STORAGE
-    CHIP_ERROR err = mStorage.Init(nullptr, command->GetStorageDirectory().ValueOr(nullptr));
-    if (err != CHIP_NO_ERROR)
-    {
-        ChipLogError(Controller, "Init Storage failure: %s", chip::ErrorStr(err));
-        return err;
-    }
+// #ifdef CONFIG_USE_LOCAL_STORAGE
+//     CHIP_ERROR err = mStorage.Init(nullptr, command->GetStorageDirectory().ValueOr(nullptr));
+//     if (err != CHIP_NO_ERROR)
+//     {
+//         ChipLogError(Controller, "Init Storage failure: %s", chip::ErrorStr(err));
+//         return err;
+//     }
 
-    chip::Logging::SetLogFilter(mStorage.GetLoggingLevel());
+//     chip::Logging::SetLogFilter(mStorage.GetLoggingLevel());
 
-#if !CHIP_DISABLE_PLATFORM_KVS
-    UseStorageDirectory(chip::DeviceLayer::PersistedStorage::KeyValueStoreMgrImpl(), mStorage.GetDirectory());
-#endif // !CHIP_DISABLE_PLATFORM_KVS
+// #if !CHIP_DISABLE_PLATFORM_KVS
+//     UseStorageDirectory(chip::DeviceLayer::PersistedStorage::KeyValueStoreMgrImpl(), mStorage.GetDirectory());
+// #endif // !CHIP_DISABLE_PLATFORM_KVS
 
-#endif // CONFIG_USE_LOCAL_STORAGE
+// #endif // CONFIG_USE_LOCAL_STORAGE
 
-    return command->Run();
+//     return command->Run();
+    return CHIP_NO_ERROR;
 }
 
 // Commands::CommandSetMap::iterator Commands::GetCommandSet(std::string commandSetName)
