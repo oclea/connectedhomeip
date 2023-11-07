@@ -16,7 +16,7 @@
  *
  */
 
-#include "rezi/common/Commands.h"
+#include "rezi/common/Command.h"
 #include "rezi/example/ExampleCredentialIssuerCommands.h"
 #include "rezi/clusters/DataModelLogger.h"
 
