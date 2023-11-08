@@ -50,6 +50,31 @@ chip::Credentials::GroupDataProviderImpl CHIPCommand::sGroupDataProvider{ kMaxGr
 
 namespace {
 
+template <typename T>
+struct HasInitWithString
+{
+    template <typename U>
+    static constexpr auto check(U *) -> typename std::is_same<decltype(std::declval<U>().Init("")), CHIP_ERROR>::type;
+
+    template <typename>
+    static constexpr std::false_type check(...);
+
+    typedef decltype(check<std::remove_reference_t<T>>(nullptr)) type;
+
+public:
+    static constexpr bool value = type::value;
+};
+
+// Template so we can do conditional enabling
+template <typename T, std::enable_if_t<HasInitWithString<T>::value, int> = 0>
+static void UseStorageDirectory(T & storageManagerImpl, const char * storageDirectory)
+{
+    std::string platformKVS = std::string(storageDirectory) + "/chip_tool_kvs";
+    storageManagerImpl.Init(platformKVS.c_str());
+}
+
+ 
+
 CHIP_ERROR GetAttestationTrustStore(const char * paaTrustStorePath, const chip::Credentials::AttestationTrustStore ** trustStore)
 {
     if (paaTrustStorePath == nullptr)
@@ -97,6 +122,9 @@ CHIP_ERROR CHIPCommand::MaybeSetUpStack()
 #endif
 
     ReturnLogErrorOnFailure(mDefaultStorage.Init(nullptr, GetStorageDirectory().ValueOr(nullptr)));
+    #if !CHIP_DISABLE_PLATFORM_KVS
+    UseStorageDirectory(chip::DeviceLayer::PersistedStorage::KeyValueStoreMgrImpl(), mDefaultStorage.GetDirectory());
+    #endif // !CHIP_DISABLE_PLATFORM_KVS
     ReturnLogErrorOnFailure(mOperationalKeystore.Init(&mDefaultStorage));
     ReturnLogErrorOnFailure(mOpCertStore.Init(&mDefaultStorage));
 
