@@ -47,7 +47,11 @@ const char * GetUsedDirectory(const char * directory)
     {
         dir = getenv("TMPDIR");
     }
-
+    
+    #ifdef TMPDIR
+    dir = TMPDIR;
+    #endif
+    
     if (dir == nullptr)
     {
         dir = "/tmp";
