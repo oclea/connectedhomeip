@@ -149,13 +149,16 @@ public:
 //     {}
 // };
 
-// class PairBleWiFi : public PairingCommand
-// {
-// public:
-//     PairBleWiFi(CredentialIssuerCommands * credsIssuerConfig) :
-//         PairingCommand("ble-wifi", PairingMode::Ble, PairingNetworkType::WiFi, credsIssuerConfig)
-//     {}
-// };
+class PairBleWiFi : public PairingCommand
+{
+public:
+    // PairBleWiFi(CredentialIssuerCommands * credsIssuerConfig) :
+    //     PairingCommand("ble-wifi", PairingMode::Ble, PairingNetworkType::WiFi, credsIssuerConfig) {};
+    
+    PairBleWiFi (CredentialIssuerCommands * credsIssuerConfig, const char * ssid, const char * password, CHIPCommand::NodeId nodeId, uint32_t pinCode, uint16_t descriminator) : 
+        PairingCommand("ble-wifi", PairingMode::Ble, PairingNetworkType::WiFi, credsIssuerConfig, ssid, password, nodeId, pinCode, descriminator) {};
+
+};
 
 // class PairBleThread : public PairingCommand
 // {

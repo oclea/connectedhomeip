@@ -40,7 +40,8 @@
 int main(int argc, char * argv[])
 {
     ExampleCredentialIssuerCommands credIssuerCommands;
-    PairOnNetwork pairing(&credIssuerCommands, (CHIPCommand::NodeId)1, (uint32_t)20202021);
+    // PairOnNetwork pairing(&credIssuerCommands, (CHIPCommand::NodeId)1, (uint32_t)20202021);
+    PairBleWiFi pairing(&credIssuerCommands, "WN802T", "gratefuldead78!", (CHIPCommand::NodeId)1, (uint32_t)20202021,  (uint16_t)3840);
     pairing.Run();
     
 

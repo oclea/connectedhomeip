@@ -76,6 +76,23 @@ public:
          mNodeId = nodeId;
          mSetupPINCode = pairingCode;
     }
+
+    PairingCommand(const char * commandName, PairingMode mode, PairingNetworkType networkType, CredentialIssuerCommands * credIssuerCmds,
+                    const char * ssid, const char * password, 
+                    CHIPCommand::NodeId nodeId, uint32_t pinCode, uint16_t descriminator,
+                    chip::Dnssd::DiscoveryFilterType filterType = chip::Dnssd::DiscoveryFilterType::kNone) :
+        CHIPCommand(commandName, credIssuerCmds),
+        mPairingMode(mode), mNetworkType(networkType), mFilterType(filterType),
+        mRemoteAddr{ IPAddress::Any, chip::Inet::InterfaceId::Null() }, mComplex_TimeZones(&mTimeZoneList),
+        mComplex_DSTOffsets(&mDSTOffsetList), mCurrentFabricRemoveCallback(OnCurrentFabricRemove, this)
+    {
+        mSSID = chip::ByteSpan(reinterpret_cast<const uint8_t*>(ssid), strlen(ssid));
+        mPassword = chip::ByteSpan(reinterpret_cast<const uint8_t*>(password), strlen(password));
+        mDiscriminator = descriminator;
+        mNodeId = nodeId;
+        mSetupPINCode = pinCode; 
+
+    }
     // PairingCommand(const char * commandName, PairingMode mode, PairingNetworkType networkType,
     //                CredentialIssuerCommands * credIssuerCmds,
     //                chip::Dnssd::DiscoveryFilterType filterType = chip::Dnssd::DiscoveryFilterType::kNone) :
