@@ -15,10 +15,6 @@ import chip.devicecontroller.model.ChipAttributePath
 import chip.devicecontroller.model.ChipEventPath
 import chip.devicecontroller.model.InvokeElement
 import chip.devicecontroller.model.NodeState
-import chip.tlv.AnonymousTag
-import chip.tlv.ContextSpecificTag
-import chip.tlv.TlvReader
-import chip.tlv.TlvWriter
 import com.google.chip.chiptool.ChipClient
 import com.google.chip.chiptool.GenericChipDeviceListener
 import com.google.chip.chiptool.R
@@ -26,6 +22,10 @@ import com.google.chip.chiptool.databinding.OpCredClientFragmentBinding
 import com.google.chip.chiptool.util.toAny
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import matter.tlv.AnonymousTag
+import matter.tlv.ContextSpecificTag
+import matter.tlv.TlvReader
+import matter.tlv.TlvWriter
 
 class OpCredClientFragment : Fragment() {
   private val deviceController: ChipDeviceController
@@ -100,7 +100,13 @@ class OpCredClientFragment : Fragment() {
     val attributeId = attribute.id
 
     val devicePtr =
-      ChipClient.getConnectedDevicePointer(requireContext(), addressUpdateFragment.deviceId)
+      try {
+        ChipClient.getConnectedDevicePointer(requireContext(), addressUpdateFragment.deviceId)
+      } catch (e: IllegalStateException) {
+        Log.d(TAG, "getConnectedDevicePointer exception", e)
+        showMessage("Get DevicePointer fail!")
+        return
+      }
 
     ChipClient.getDeviceController(requireContext())
       .readPath(
@@ -137,7 +143,13 @@ class OpCredClientFragment : Fragment() {
 
   private suspend fun sendRemoveFabricsBtnClick(fabricIndex: UInt) {
     val devicePtr =
-      ChipClient.getConnectedDevicePointer(requireContext(), addressUpdateFragment.deviceId)
+      try {
+        ChipClient.getConnectedDevicePointer(requireContext(), addressUpdateFragment.deviceId)
+      } catch (e: IllegalStateException) {
+        Log.d(TAG, "getConnectedDevicePointer exception", e)
+        showMessage("Get DevicePointer fail!")
+        return
+      }
     // TODO : Need to be implement poj-to-tlv
     val tlvWriter = TlvWriter()
     tlvWriter.startStructure(AnonymousTag)

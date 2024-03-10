@@ -22,10 +22,6 @@ import chip.devicecontroller.model.ChipAttributePath
 import chip.devicecontroller.model.ChipEventPath
 import chip.devicecontroller.model.InvokeElement
 import chip.devicecontroller.model.NodeState
-import chip.tlv.AnonymousTag
-import chip.tlv.ContextSpecificTag
-import chip.tlv.TlvReader
-import chip.tlv.TlvWriter
 import com.google.chip.chiptool.ChipClient
 import com.google.chip.chiptool.GenericChipDeviceListener
 import com.google.chip.chiptool.R
@@ -36,6 +32,10 @@ import java.util.Calendar
 import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import matter.tlv.AnonymousTag
+import matter.tlv.ContextSpecificTag
+import matter.tlv.TlvReader
+import matter.tlv.TlvWriter
 
 class OnOffClientFragment : Fragment() {
   private val deviceController: ChipDeviceController
@@ -105,6 +105,15 @@ class OnOffClientFragment : Fragment() {
 
     val attributePath = ChipAttributePath.newInstance(endpointId, clusterId, attributeId)
 
+    val devicePointer =
+      try {
+        ChipClient.getConnectedDevicePointer(requireContext(), addressUpdateFragment.deviceId)
+      } catch (e: IllegalStateException) {
+        Log.d(TAG, "getConnectedDevicePointer exception", e)
+        showMessage("Get DevicePointer fail!")
+        return
+      }
+
     ChipClient.getDeviceController(requireContext())
       .readPath(
         object : ReportCallback {
@@ -128,7 +137,7 @@ class OnOffClientFragment : Fragment() {
             showMessage("On/Off attribute value: $value")
           }
         },
-        getConnectedDevicePointer(),
+        devicePointer,
         listOf(attributePath),
         null,
         false,
@@ -181,6 +190,15 @@ class OnOffClientFragment : Fragment() {
         )
       }
 
+    val devicePointer =
+      try {
+        ChipClient.getConnectedDevicePointer(requireContext(), addressUpdateFragment.deviceId)
+      } catch (e: IllegalStateException) {
+        Log.d(TAG, "getConnectedDevicePointer exception", e)
+        showMessage("Get DevicePointer fail!")
+        return
+      }
+
     deviceController.subscribeToPath(
       subscriptionEstablishedCallback,
       resubscriptionAttemptCallback,
@@ -211,7 +229,7 @@ class OnOffClientFragment : Fragment() {
           showReportMessage(message)
         }
       },
-      getConnectedDevicePointer(),
+      devicePointer,
       listOf(attributePath),
       null,
       minInterval,
@@ -265,6 +283,15 @@ class OnOffClientFragment : Fragment() {
         null
       )
 
+    val devicePointer =
+      try {
+        ChipClient.getConnectedDevicePointer(requireContext(), addressUpdateFragment.deviceId)
+      } catch (e: IllegalStateException) {
+        Log.d(TAG, "getConnectedDevicePointer exception", e)
+        showMessage("Get DevicePointer fail!")
+        return
+      }
+
     deviceController.invoke(
       object : InvokeCallback {
         override fun onError(ex: Exception?) {
@@ -277,7 +304,7 @@ class OnOffClientFragment : Fragment() {
           showMessage("MoveToLevel command success")
         }
       },
-      getConnectedDevicePointer(),
+      devicePointer,
       invokeElement,
       0,
       0
@@ -298,6 +325,15 @@ class OnOffClientFragment : Fragment() {
         null
       )
 
+    val devicePointer =
+      try {
+        ChipClient.getConnectedDevicePointer(requireContext(), addressUpdateFragment.deviceId)
+      } catch (e: IllegalStateException) {
+        Log.d(TAG, "getConnectedDevicePointer exception", e)
+        showMessage("Get DevicePointer fail!")
+        return
+      }
+
     deviceController.invoke(
       object : InvokeCallback {
         override fun onError(ex: Exception?) {
@@ -310,15 +346,11 @@ class OnOffClientFragment : Fragment() {
           showMessage("${commandId.name} command success")
         }
       },
-      getConnectedDevicePointer(),
+      devicePointer,
       invokeElement,
       0,
       0
     )
-  }
-
-  private suspend fun getConnectedDevicePointer(): Long {
-    return ChipClient.getConnectedDevicePointer(requireContext(), addressUpdateFragment.deviceId)
   }
 
   private fun showMessage(msg: String) {

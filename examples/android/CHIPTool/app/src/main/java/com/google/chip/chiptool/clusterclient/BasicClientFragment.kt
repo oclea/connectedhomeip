@@ -17,9 +17,7 @@ import chip.devicecontroller.model.AttributeWriteRequest
 import chip.devicecontroller.model.ChipAttributePath
 import chip.devicecontroller.model.ChipEventPath
 import chip.devicecontroller.model.NodeState
-import chip.tlv.AnonymousTag
-import chip.tlv.TlvReader
-import chip.tlv.TlvWriter
+import chip.devicecontroller.model.Status
 import com.google.chip.chiptool.ChipClient
 import com.google.chip.chiptool.GenericChipDeviceListener
 import com.google.chip.chiptool.R
@@ -28,6 +26,9 @@ import com.google.chip.chiptool.util.toAny
 import java.util.Optional
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import matter.tlv.AnonymousTag
+import matter.tlv.TlvReader
+import matter.tlv.TlvWriter
 
 class BasicClientFragment : Fragment() {
   private val deviceController: ChipDeviceController
@@ -138,7 +139,13 @@ class BasicClientFragment : Fragment() {
     val attributeId = BasicInformation.Attribute.valueOf(attributeName).id
 
     val devicePtr =
-      ChipClient.getConnectedDevicePointer(requireContext(), addressUpdateFragment.deviceId)
+      try {
+        ChipClient.getConnectedDevicePointer(requireContext(), addressUpdateFragment.deviceId)
+      } catch (e: IllegalStateException) {
+        Log.d(TAG, "getConnectedDevicePointer exception", e)
+        showMessage("Get DevicePointer fail!")
+        return
+      }
 
     ChipClient.getDeviceController(requireContext())
       .readPath(
@@ -181,7 +188,13 @@ class BasicClientFragment : Fragment() {
   private suspend fun sendWriteAttribute(attribute: BasicInformation.Attribute, tlv: ByteArray) {
     val clusterId = BasicInformation.ID
     val devicePtr =
-      ChipClient.getConnectedDevicePointer(requireContext(), addressUpdateFragment.deviceId)
+      try {
+        ChipClient.getConnectedDevicePointer(requireContext(), addressUpdateFragment.deviceId)
+      } catch (e: IllegalStateException) {
+        Log.d(TAG, "getConnectedDevicePointer exception", e)
+        showMessage("Get DevicePointer fail!")
+        return
+      }
 
     ChipClient.getDeviceController(requireContext())
       .write(
@@ -191,8 +204,8 @@ class BasicClientFragment : Fragment() {
             Log.e(TAG, "Write ${attribute.name} failure", ex)
           }
 
-          override fun onResponse(attributePath: ChipAttributePath?) {
-            showMessage("Write ${attribute.name} success")
+          override fun onResponse(attributePath: ChipAttributePath, status: Status) {
+            showMessage("Write ${attribute.name} response: $status")
           }
         },
         devicePtr,

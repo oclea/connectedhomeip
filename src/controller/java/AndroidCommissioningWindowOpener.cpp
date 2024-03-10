@@ -36,8 +36,12 @@ AndroidCommissioningWindowOpener::AndroidCommissioningWindowOpener(DeviceControl
     CommissioningWindowOpener(controller), mOnOpenCommissioningWindowCallback(OnOpenCommissioningWindowResponse, this),
     mOnOpenBasicCommissioningWindowCallback(OnOpenBasicCommissioningWindowResponse, this)
 {
-    JNIEnv * env  = JniReferences::GetInstance().GetEnvForCurrentThread();
-    mJavaCallback = env->NewGlobalRef(jCallbackObject);
+    JNIEnv * env = JniReferences::GetInstance().GetEnvForCurrentThread();
+    if (mJavaCallback.Init(jCallbackObject) != CHIP_NO_ERROR)
+    {
+        ChipLogError(Controller, "Failed to create global reference for mJavaCallback");
+        return;
+    }
 
     jclass callbackClass = env->GetObjectClass(jCallbackObject);
 
@@ -54,13 +58,6 @@ AndroidCommissioningWindowOpener::AndroidCommissioningWindowOpener(DeviceControl
         ChipLogError(Controller, "Failed to access callback 'onError' method");
         env->ExceptionClear();
     }
-}
-
-AndroidCommissioningWindowOpener::~AndroidCommissioningWindowOpener()
-{
-    ChipLogError(Controller, "Delete AndroidCommissioningWindowOpener");
-    JNIEnv * env = JniReferences::GetInstance().GetEnvForCurrentThread();
-    env->DeleteGlobalRef(mJavaCallback);
 }
 
 CHIP_ERROR AndroidCommissioningWindowOpener::OpenBasicCommissioningWindow(DeviceController * controller, NodeId deviceId,
@@ -112,8 +109,10 @@ void AndroidCommissioningWindowOpener::OnOpenCommissioningWindowResponse(void * 
 {
     auto * self  = static_cast<AndroidCommissioningWindowOpener *>(context);
     JNIEnv * env = JniReferences::GetInstance().GetEnvForCurrentThread();
+    VerifyOrReturn(env != nullptr, ChipLogError(Controller, "Could not get JNIEnv for current thread"));
+    JniLocalReferenceScope scope(env);
 
-    VerifyOrExit(self->mJavaCallback != nullptr, ChipLogError(Controller, "mJavaCallback is not allocated."));
+    VerifyOrExit(self->mJavaCallback.HasValidObjectRef(), ChipLogError(Controller, "mJavaCallback is not allocated."));
 
     if (status == CHIP_NO_ERROR)
     {
@@ -127,7 +126,7 @@ void AndroidCommissioningWindowOpener::OnOpenCommissioningWindowResponse(void * 
         {
             UtfString jManualPairingCode(env, manualPairingCode.c_str());
             UtfString jQRCode(env, QRCode.c_str());
-            env->CallVoidMethod(self->mJavaCallback, self->mOnSuccessMethod, static_cast<jlong>(deviceId),
+            env->CallVoidMethod(self->mJavaCallback.ObjectRef(), self->mOnSuccessMethod, static_cast<jlong>(deviceId),
                                 jManualPairingCode.jniValue(), jQRCode.jniValue());
         }
     }
@@ -135,7 +134,7 @@ void AndroidCommissioningWindowOpener::OnOpenCommissioningWindowResponse(void * 
     {
         if (self->mOnErrorMethod != nullptr)
         {
-            env->CallVoidMethod(self->mJavaCallback, self->mOnErrorMethod, static_cast<jint>(status.GetValue()),
+            env->CallVoidMethod(self->mJavaCallback.ObjectRef(), self->mOnErrorMethod, static_cast<jint>(status.GetValue()),
                                 static_cast<jlong>(deviceId));
         }
     }
@@ -146,17 +145,18 @@ exit:
 void AndroidCommissioningWindowOpener::OnOpenBasicCommissioningWindowResponse(void * context, NodeId deviceId, CHIP_ERROR status)
 {
     auto * self = static_cast<AndroidCommissioningWindowOpener *>(context);
-
-    if (self->mJavaCallback != nullptr)
+    if (self->mJavaCallback.HasValidObjectRef())
     {
         JNIEnv * env = JniReferences::GetInstance().GetEnvForCurrentThread();
+        VerifyOrReturn(env != nullptr, ChipLogError(Controller, "Could not get JNIEnv for current thread"));
+        JniLocalReferenceScope scope(env);
         if (status == CHIP_NO_ERROR)
         {
             if (self->mOnSuccessMethod != nullptr)
             {
                 UtfString jManualPairingCode(env, "");
                 UtfString jQRCode(env, "");
-                env->CallVoidMethod(self->mJavaCallback, self->mOnSuccessMethod, static_cast<jlong>(deviceId),
+                env->CallVoidMethod(self->mJavaCallback.ObjectRef(), self->mOnSuccessMethod, static_cast<jlong>(deviceId),
                                     jManualPairingCode.jniValue(), jQRCode.jniValue());
             }
         }
@@ -164,7 +164,7 @@ void AndroidCommissioningWindowOpener::OnOpenBasicCommissioningWindowResponse(vo
         {
             if (self->mOnErrorMethod != nullptr)
             {
-                env->CallVoidMethod(self->mJavaCallback, self->mOnErrorMethod, static_cast<jint>(status.GetValue()),
+                env->CallVoidMethod(self->mJavaCallback.ObjectRef(), self->mOnErrorMethod, static_cast<jint>(status.GetValue()),
                                     static_cast<jlong>(deviceId));
             }
         }

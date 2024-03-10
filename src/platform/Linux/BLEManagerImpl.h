@@ -23,9 +23,14 @@
 
 #pragma once
 
+#include <cstdint>
+#include <string>
+
 #include <ble/BleLayer.h>
 #include <platform/internal/BLEManager.h>
 
+#include "bluez/BluezAdvertisement.h"
+#include "bluez/BluezEndpoint.h"
 #include "bluez/ChipDeviceScanner.h"
 #include "bluez/Types.h"
 
@@ -34,21 +39,6 @@ namespace DeviceLayer {
 namespace Internal {
 
 void HandleIncomingBleConnection(Ble::BLEEndPoint * bleEP);
-
-struct BLEAdvConfig
-{
-    char * mpBleName;
-    uint32_t mAdapterId;
-    uint8_t mMajor;
-    uint8_t mMinor;
-    uint16_t mVendorId;
-    uint16_t mProductId;
-    uint64_t mDeviceId;
-    uint8_t mPairingStatus;
-    ChipAdvType mType;
-    uint16_t mDuration;
-    const char * mpAdvertisingUUID;
-};
 
 enum class BleScanState : uint8_t
 {
@@ -102,10 +92,10 @@ public:
     static void HandleTXCharCCCDWrite(BLE_CONNECTION_OBJECT user_data);
     static void HandleTXComplete(BLE_CONNECTION_OBJECT user_data);
 
-    static void NotifyBLEPeripheralRegisterAppComplete(bool aIsSuccess, void * apAppstate);
-    static void NotifyBLEPeripheralAdvConfiguredComplete(bool aIsSuccess, void * apAppstate);
-    static void NotifyBLEPeripheralAdvStartComplete(bool aIsSuccess, void * apAppstate);
-    static void NotifyBLEPeripheralAdvStopComplete(bool aIsSuccess, void * apAppstate);
+    static void NotifyBLEPeripheralRegisterAppComplete(bool aIsSuccess);
+    static void NotifyBLEPeripheralAdvStartComplete(bool aIsSuccess);
+    static void NotifyBLEPeripheralAdvStopComplete(bool aIsSuccess);
+    static void NotifyBLEPeripheralAdvReleased();
 
 private:
     // ===== Members that implement the BLEManager internal interface.
@@ -144,6 +134,7 @@ private:
     // ===== Members that implement virtual methods on BleApplicationDelegate.
 
     void NotifyChipConnectionClosed(BLE_CONNECTION_OBJECT conId) override;
+    void CheckNonConcurrentBleClosing() override;
 
     // ===== Members that implement virtual methods on BleConnectionDelegate.
 
@@ -152,6 +143,7 @@ private:
     CHIP_ERROR CancelConnection() override;
 
     // ===== Members that implement virtual methods on ChipDeviceScannerDelegate
+
     void OnDeviceScanned(BluezDevice1 & device, const chip::Ble::ChipBLEDeviceIdentificationInfo & info) override;
     void OnScanComplete() override;
 
@@ -163,6 +155,7 @@ private:
     static BLEManagerImpl sInstance;
 
     // ===== Private members reserved for use by this class only.
+
     enum class Flags : uint16_t
     {
         kAsyncInitCompleted       = 0x0001, /**< One-time asynchronous initialization actions have been performed. */
@@ -175,6 +168,7 @@ private:
         kFastAdvertisingEnabled   = 0x0080, /**< The application has enabled fast advertising. */
         kUseCustomDeviceName      = 0x0100, /**< The application has configured a custom BLE device name. */
         kAdvertisingRefreshNeeded = 0x0200, /**< The advertising configuration/state in BLE layer needs to be updated. */
+        kExtAdvertisingEnabled    = 0x0400, /**< The application has enabled CHIPoBLE extended advertising. */
     };
 
     enum
@@ -184,24 +178,25 @@ private:
         kMaxAdvertisementDataSetSize = 31  // TODO: verify this
     };
 
-    CHIP_ERROR StartBLEAdvertising();
-    CHIP_ERROR StopBLEAdvertising();
-
     void DriveBLEState();
-    static void DriveBLEState(intptr_t arg);
-
+    BluezAdvertisement::AdvertisingIntervals GetAdvertisingIntervals() const;
+    static void HandleAdvertisingTimer(chip::System::Layer *, void * appState);
     void InitiateScan(BleScanState scanType);
-    static void InitiateScan(intptr_t arg);
     void CleanScanConfig();
 
     CHIPoBLEServiceMode mServiceMode;
-    BLEAdvConfig mBLEAdvConfig;
-    BLEScanConfig mBLEScanConfig;
     BitFlags<Flags> mFlags;
+
+    uint32_t mAdapterId = 0;
     char mDeviceName[kMaxDeviceNameLength + 1];
-    bool mIsCentral            = false;
-    BluezEndpoint * mpEndpoint = nullptr;
-    std::unique_ptr<ChipDeviceScanner> mDeviceScanner;
+    bool mIsCentral = false;
+    BluezEndpoint mEndpoint;
+
+    BluezAdvertisement mBLEAdvertisement;
+    const char * mpBLEAdvUUID = nullptr;
+
+    ChipDeviceScanner mDeviceScanner;
+    BLEScanConfig mBLEScanConfig;
 };
 
 /**

@@ -12,24 +12,15 @@
 #include <openthread/platform/logging.h>
 #endif
 
-#include "AppConfig.h"
-#include <FreeRTOS.h>
-#include <queue.h>
 #include <stdio.h>
 #include <string.h>
-#include <task.h>
 
 #ifndef BRD4325A
-#include "rail_types.h"
 
 #ifdef RAIL_ASSERT_DEBUG_STRING
 #include "rail_assert_error_codes.h"
 #endif
 #endif // BRD4325A
-
-#ifdef BRD4325A // For SiWx917 Platform only
-#include "core_cm4.h"
-#endif
 
 #ifdef PW_RPC_ENABLED
 #include "PigweedLogger.h"
@@ -149,7 +140,7 @@ static void PrintLog(const char * msg)
         PigweedLogger::putString(msg, sz);
 #else
         SEGGER_RTT_WriteNoLock(LOG_RTT_BUFFER_INDEX, msg, sz);
-#endif
+#endif // SILABS_LOG_OUT_UART
 
 #if SILABS_LOG_OUT_RTT || PW_RPC_ENABLED
         const char * newline = "\r\n";

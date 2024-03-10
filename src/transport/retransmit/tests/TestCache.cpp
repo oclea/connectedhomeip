@@ -14,9 +14,6 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-
-#include "TestRetransmit.h"
-
 #include <lib/support/UnitTestRegistration.h>
 #include <transport/retransmit/Cache.h>
 
@@ -38,7 +35,7 @@ public:
      * Convenience add when types are trivially copyable, so no actual
      * reference needs to be created.
      */
-    template <typename = std::enable_if<std::is_trivially_copyable<PayloadType>::value, int>>
+    template <std::enable_if_t<std::is_trivially_copyable<PayloadType>::value, int> = 0>
     CHIP_ERROR AddValue(const KeyType & key, PayloadType payload)
     {
         return chip::Retransmit::Cache<KeyType, PayloadType, N>::Add(key, payload);
@@ -271,7 +268,7 @@ static const nlTest sTests[] =
 };
 // clang-format on
 
-int TestCache(void)
+int TestCache()
 {
     nlTestSuite theSuite = { "Retransmit-Cache", &sTests[0], nullptr, nullptr };
     gPayloadTracker.Init(&theSuite);
